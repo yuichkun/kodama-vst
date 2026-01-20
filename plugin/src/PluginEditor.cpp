@@ -2,6 +2,10 @@
 #include "Kodama/PluginEditor.h"
 #include <unordered_map>
 
+#if !JUCE_DEBUG
+#include "KodamaUIBinaryData.h"
+#endif
+
 namespace kodama {
 
 namespace {
@@ -93,6 +97,7 @@ void KodamaEditor::resized()
 
 std::optional<KodamaEditor::Resource> KodamaEditor::getResource(const juce::String& url)
 {
+#if JUCE_DEBUG
     const juce::File resourceRoot{KODAMA_UI_DIST_PATH};
     const auto resourceToRetrieve = url == "/" ? "index.html" : url.fromFirstOccurrenceOf("/", false, false);
     const auto resourceFile = resourceRoot.getChildFile(resourceToRetrieve);
@@ -104,6 +109,19 @@ std::optional<KodamaEditor::Resource> KodamaEditor::getResource(const juce::Stri
     }
 
     return std::nullopt;
+#else
+    if (url == "/" || url == "/index.html")
+    {
+        return Resource{
+            std::vector<std::byte>(
+                reinterpret_cast<const std::byte*>(KodamaUI::index_html),
+                reinterpret_cast<const std::byte*>(KodamaUI::index_html) + KodamaUI::index_htmlSize
+            ),
+            "text/html"
+        };
+    }
+    return std::nullopt;
+#endif
 }
 
 }

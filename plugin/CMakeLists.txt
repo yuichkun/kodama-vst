@@ -1,3 +1,10 @@
+juce_add_binary_data(KodamaUIBinaryData
+    HEADER_NAME "KodamaUIBinaryData.h"
+    NAMESPACE KodamaUI
+    SOURCES
+        "${CMAKE_CURRENT_SOURCE_DIR}/../ui/dist/index.html"
+)
+
 juce_add_plugin(Kodama
     COMPANY_NAME "KodamaAudio"
     IS_SYNTH FALSE
@@ -37,6 +44,7 @@ add_dependencies(Kodama kodama_dsp_rust)
 target_link_libraries(Kodama
     PRIVATE
         kodama_dsp
+        KodamaUIBinaryData
         juce::juce_audio_utils
         juce::juce_gui_extra
     PUBLIC
