@@ -1,0 +1,29 @@
+# Build directories
+build/
+cmake-build-*/
+out/
+
+# IDE
+.idea/
+.vscode/
+*.xcodeproj/
+*.xcworkspace/
+
+# Node.js (ui/)
+ui/node_modules/
+ui/dist/
+ui/.vite/
+*.log
+
+# macOS
+.DS_Store
+*.swp
+*~
+
+# JUCE generated
+JuceLibraryCode/
+Builds/
+
+# Binary resources (generated)
+plugin/src/BinaryData.h
+plugin/src/BinaryData.cpp
