@@ -1,8 +1,10 @@
-import type { AudioRuntime, ParameterState } from './types'
+import type { AudioRuntime, ParameterState, WaveformData, WaveformCallback } from './types'
 import { getSliderState } from '@/juce/index.js'
 
 export class JuceRuntime implements AudioRuntime {
   readonly type = 'juce' as const
+  private waveformCallbacks: Set<WaveformCallback> = new Set()
+  private waveformUnsubscribe: (() => void) | null = null
 
   getParameter(id: string): ParameterState | null {
     if (typeof window === 'undefined' || !window.__JUCE__) return null
@@ -41,5 +43,36 @@ export class JuceRuntime implements AudioRuntime {
   hasAudioLoaded(): boolean {
     return false
   }
-  dispose(): void {}
+  dispose(): void {
+    this.waveformCallbacks.clear()
+    this.waveformUnsubscribe?.()
+    this.waveformUnsubscribe = null
+  }
+
+  onWaveformData(callback: WaveformCallback): () => void {
+    this.waveformCallbacks.add(callback)
+
+    if (!this.waveformUnsubscribe && window.__JUCE__?.backend) {
+      this.waveformUnsubscribe = window.__JUCE__.backend.addEventListener(
+        'waveformData',
+        (data) => {
+          const typedData = data as { input: number[]; output: number[]; length: number }
+          const waveformData: WaveformData = {
+            input: new Float32Array(typedData.input),
+            output: new Float32Array(typedData.output),
+            length: typedData.length,
+          }
+          this.waveformCallbacks.forEach((cb) => cb(waveformData))
+        }
+      )
+    }
+
+    return () => {
+      this.waveformCallbacks.delete(callback)
+      if (this.waveformCallbacks.size === 0) {
+        this.waveformUnsubscribe?.()
+        this.waveformUnsubscribe = null
+      }
+    }
+  }
 }

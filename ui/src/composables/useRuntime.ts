@@ -4,12 +4,14 @@ import type { AudioRuntime, ParameterState } from '@/runtime/types'
 const runtime = shallowRef<AudioRuntime | null>(null)
 const isInitialized = ref(false)
 const initError = ref<string | null>(null)
+let isInitializing = false
 
 export function useRuntime() {
   const isWeb = import.meta.env.VITE_RUNTIME === 'web'
 
   onMounted(async () => {
-    if (runtime.value) return
+    if (runtime.value || isInitializing) return
+    isInitializing = true
 
     try {
       if (isWeb) {

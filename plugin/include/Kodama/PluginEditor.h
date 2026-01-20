@@ -5,7 +5,7 @@
 
 namespace kodama {
 
-class KodamaEditor final : public juce::AudioProcessorEditor
+class KodamaEditor final : public juce::AudioProcessorEditor, private juce::Timer
 {
 public:
     explicit KodamaEditor(KodamaProcessor&);
@@ -14,6 +14,7 @@ public:
     void resized() override;
 
 private:
+    void timerCallback() override;
     using Resource = juce::WebBrowserComponent::Resource;
     std::optional<Resource> getResource(const juce::String& url);
     static const char* getMimeForExtension(const juce::String& extension);

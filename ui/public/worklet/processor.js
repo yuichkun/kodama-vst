@@ -1,3 +1,6 @@
+const WAVEFORM_BUFFER_SIZE = 512;
+const WAVEFORM_SEND_INTERVAL = 4;
+
 class KodamaDspProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
@@ -7,6 +10,12 @@ class KodamaDspProcessor extends AudioWorkletProcessor {
     this.rightInPtr = null;
     this.leftOutPtr = null;
     this.rightOutPtr = null;
+
+    this.inputRingBuffer = new Float32Array(WAVEFORM_BUFFER_SIZE);
+    this.outputRingBuffer = new Float32Array(WAVEFORM_BUFFER_SIZE);
+    this.ringWriteIndex = 0;
+    this.processCounter = 0;
+
     this.port.onmessage = (event) => this.handleMessage(event.data);
   }
 
@@ -89,7 +98,36 @@ class KodamaDspProcessor extends AudioWorkletProcessor {
     leftOut.set(leftOutView);
     rightOut.set(rightOutView);
 
+    this.updateWaveformBuffer(leftIn, leftOut, numSamples);
+
     return true;
+  }
+
+  updateWaveformBuffer(inputData, outputData, numSamples) {
+    for (let i = 0; i < numSamples; i++) {
+      if (this.ringWriteIndex < WAVEFORM_BUFFER_SIZE) {
+        this.inputRingBuffer[this.ringWriteIndex] = inputData[i];
+        this.outputRingBuffer[this.ringWriteIndex] = outputData[i];
+        this.ringWriteIndex++;
+      }
+    }
+
+    this.processCounter++;
+    if (this.processCounter >= WAVEFORM_SEND_INTERVAL) {
+      this.processCounter = 0;
+      this.sendWaveformData();
+      this.ringWriteIndex = 0;
+    }
+  }
+
+  sendWaveformData() {
+    this.port.postMessage(
+      { type: 'waveform', input: this.inputRingBuffer, output: this.outputRingBuffer, length: WAVEFORM_BUFFER_SIZE },
+      [this.inputRingBuffer.buffer, this.outputRingBuffer.buffer]
+    );
+
+    this.inputRingBuffer = new Float32Array(WAVEFORM_BUFFER_SIZE);
+    this.outputRingBuffer = new Float32Array(WAVEFORM_BUFFER_SIZE);
   }
 }
 

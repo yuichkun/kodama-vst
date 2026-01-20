@@ -1,9 +1,18 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import KnobControl from './components/KnobControl.vue'
 import WebAudioControls from './components/WebAudioControls.vue'
+import WaveformDisplay from './components/WaveformDisplay.vue'
 import { useRuntime } from './composables/useRuntime'
+import { useWaveform } from './composables/useWaveform'
 
 const { isWeb, isInitialized, initError } = useRuntime()
+
+const waveformRef = ref<InstanceType<typeof WaveformDisplay> | null>(null)
+
+useWaveform((data) => {
+  waveformRef.value?.handleWaveformData(data)
+})
 </script>
 
 <template>
@@ -26,6 +35,12 @@ const { isWeb, isInitialized, initError } = useRuntime()
     <template v-else>
       <div v-if="isWeb" class="px-6 pb-4 flex justify-center">
         <WebAudioControls />
+      </div>
+
+      <div class="px-6 pb-4">
+        <div class="h-32 rounded-lg overflow-hidden border border-white/10 bg-black">
+          <WaveformDisplay ref="waveformRef" />
+        </div>
       </div>
 
       <main class="flex-1 flex items-center justify-center pb-12">

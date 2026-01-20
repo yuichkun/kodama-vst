@@ -107,6 +107,11 @@ void KodamaProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiB
     const auto numChannels = buffer.getNumChannels();
     const auto numSamples = static_cast<size_t>(buffer.getNumSamples());
 
+    static constexpr size_t MAX_BLOCK_SIZE = 2048;
+    std::array<float, MAX_BLOCK_SIZE> inputCopy{};
+    const size_t copySize = std::min(numSamples, MAX_BLOCK_SIZE);
+    std::copy_n(buffer.getReadPointer(0), copySize, inputCopy.begin());
+
     if (numChannels >= 2)
     {
         kodama_dsp_process(
@@ -126,6 +131,18 @@ void KodamaProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiB
             buffer.getWritePointer(0),
             buffer.getWritePointer(0),
             numSamples);
+    }
+
+    const juce::SpinLock::ScopedTryLockType lock(waveformLock);
+    if (lock.isLocked())
+    {
+        const float* outputPtr = buffer.getReadPointer(0);
+        for (size_t i = 0; i < copySize; ++i)
+        {
+            inputWaveformBuffer[waveformWriteIndex] = inputCopy[i];
+            outputWaveformBuffer[waveformWriteIndex] = outputPtr[i];
+            waveformWriteIndex = (waveformWriteIndex + 1) % WAVEFORM_BUFFER_SIZE;
+        }
     }
 }
 

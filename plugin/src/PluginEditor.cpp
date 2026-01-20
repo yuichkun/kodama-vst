@@ -86,13 +86,43 @@ KodamaEditor::KodamaEditor(KodamaProcessor& p)
 
     setSize(500, 400);
     setResizable(true, true);
+
+    startTimerHz(60);
 }
 
-KodamaEditor::~KodamaEditor() = default;
+KodamaEditor::~KodamaEditor()
+{
+    stopTimer();
+}
 
 void KodamaEditor::resized()
 {
     webView->setBounds(getLocalBounds());
+}
+
+void KodamaEditor::timerCallback()
+{
+    juce::Array<juce::var> inputArray;
+    juce::Array<juce::var> outputArray;
+
+    {
+        juce::SpinLock::ScopedLockType lock(processorRef.waveformLock);
+        const size_t writeIdx = processorRef.waveformWriteIndex;
+
+        for (size_t i = 0; i < WAVEFORM_BUFFER_SIZE; ++i)
+        {
+            const size_t readIdx = (writeIdx + i) % WAVEFORM_BUFFER_SIZE;
+            inputArray.add(processorRef.inputWaveformBuffer[readIdx]);
+            outputArray.add(processorRef.outputWaveformBuffer[readIdx]);
+        }
+    }
+
+    auto waveformData = std::make_unique<juce::DynamicObject>();
+    waveformData->setProperty("input", inputArray);
+    waveformData->setProperty("output", outputArray);
+    waveformData->setProperty("length", static_cast<int>(WAVEFORM_BUFFER_SIZE));
+
+    webView->emitEventIfBrowserIsVisible("waveformData", juce::var(waveformData.release()));
 }
 
 std::optional<KodamaEditor::Resource> KodamaEditor::getResource(const juce::String& url)

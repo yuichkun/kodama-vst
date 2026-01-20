@@ -18,6 +18,14 @@ export interface ParameterState {
   onValueChanged(callback: (value: number) => void): () => void
 }
 
+export interface WaveformData {
+  input: Float32Array
+  output: Float32Array
+  length: number
+}
+
+export type WaveformCallback = (data: WaveformData) => void
+
 export interface AudioRuntime {
   readonly type: 'juce' | 'web'
   getParameter(id: string): ParameterState | null
@@ -28,4 +36,5 @@ export interface AudioRuntime {
   getIsPlaying?(): boolean
   hasAudioLoaded?(): boolean
   dispose?(): void
+  onWaveformData?(callback: WaveformCallback): () => void
 }

@@ -1,4 +1,4 @@
-import type { AudioRuntime, ParameterState, ParameterProperties } from './types'
+import type { AudioRuntime, ParameterState, ParameterProperties, WaveformData, WaveformCallback } from './types'
 
 interface ParameterData {
   value: number
@@ -15,6 +15,7 @@ export class WebRuntime implements AudioRuntime {
   private audioBuffer: AudioBuffer | null = null
   private isPlaying = false
   private parameters: Map<string, ParameterData> = new Map()
+  private waveformCallbacks: Set<WaveformCallback> = new Set()
 
   constructor() {
     this.parameters.set('delayTime', {
@@ -60,6 +61,8 @@ export class WebRuntime implements AudioRuntime {
         } else if (event.data.type === 'error') {
           clearTimeout(timeout)
           reject(new Error(event.data.message))
+        } else if (event.data.type === 'waveform') {
+          this.handleWaveformData(event.data)
         }
       }
 
@@ -140,7 +143,22 @@ export class WebRuntime implements AudioRuntime {
 
   dispose(): void {
     this.stop()
+    this.waveformCallbacks.clear()
     this.workletNode?.disconnect()
     this.audioContext?.close()
+  }
+
+  onWaveformData(callback: WaveformCallback): () => void {
+    this.waveformCallbacks.add(callback)
+    return () => this.waveformCallbacks.delete(callback)
+  }
+
+  private handleWaveformData(data: { input: Float32Array; output: Float32Array; length: number }): void {
+    const waveformData: WaveformData = {
+      input: data.input,
+      output: data.output,
+      length: data.length,
+    }
+    this.waveformCallbacks.forEach((cb) => cb(waveformData))
   }
 }

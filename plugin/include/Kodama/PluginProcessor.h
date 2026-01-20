@@ -2,8 +2,11 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "kodama_dsp.h"
+#include <array>
 
 namespace kodama {
+
+constexpr size_t WAVEFORM_BUFFER_SIZE = 512;
 
 class KodamaProcessor final : public juce::AudioProcessor
 {
@@ -43,6 +46,11 @@ public:
     static constexpr const char* PARAM_DELAY_TIME = "delayTime";
     static constexpr const char* PARAM_FEEDBACK = "feedback";
     static constexpr const char* PARAM_MIX = "mix";
+
+    juce::SpinLock waveformLock;
+    std::array<float, WAVEFORM_BUFFER_SIZE> inputWaveformBuffer{};
+    std::array<float, WAVEFORM_BUFFER_SIZE> outputWaveformBuffer{};
+    size_t waveformWriteIndex = 0;
 
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
