@@ -46,6 +46,7 @@ public:
     static constexpr const char* PARAM_DELAY_TIME = "delayTime";
     static constexpr const char* PARAM_FEEDBACK = "feedback";
     static constexpr const char* PARAM_MIX = "mix";
+    static constexpr const char* PARAM_VOICES = "voices";
 
     juce::SpinLock waveformLock;
     std::array<float, WAVEFORM_BUFFER_SIZE> inputWaveformBuffer{};
@@ -60,6 +61,7 @@ private:
     std::atomic<float>* delayTimeParam = nullptr;
     std::atomic<float>* feedbackParam = nullptr;
     std::atomic<float>* mixParam = nullptr;
+    std::atomic<float>* voicesParam = nullptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(KodamaProcessor)
 };

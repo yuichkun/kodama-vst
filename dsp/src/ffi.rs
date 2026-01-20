@@ -59,6 +59,15 @@ pub unsafe extern "C" fn kodama_dsp_set_mix(handle: *mut KodamaDspHandle, value:
 }
 
 /// # Safety
+/// `handle` must be a valid pointer returned by `kodama_dsp_create`
+#[no_mangle]
+pub unsafe extern "C" fn kodama_dsp_set_voices(handle: *mut KodamaDspHandle, value: u32) {
+    if let Some(h) = handle.as_mut() {
+        h.processor.set_voices(value as usize);
+    }
+}
+
+/// # Safety
 /// - `handle` must be a valid pointer returned by `kodama_dsp_create`
 /// - All buffer pointers must be valid for `num_samples` elements
 #[no_mangle]

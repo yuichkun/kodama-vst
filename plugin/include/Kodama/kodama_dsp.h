@@ -16,6 +16,7 @@ void kodama_dsp_set_sample_rate(KodamaDspHandle* handle, float sample_rate);
 void kodama_dsp_set_delay_time(KodamaDspHandle* handle, float ms);
 void kodama_dsp_set_feedback(KodamaDspHandle* handle, float value);
 void kodama_dsp_set_mix(KodamaDspHandle* handle, float value);
+void kodama_dsp_set_voices(KodamaDspHandle* handle, uint32_t value);
 void kodama_dsp_process(
     KodamaDspHandle* handle,
     const float* left_in,

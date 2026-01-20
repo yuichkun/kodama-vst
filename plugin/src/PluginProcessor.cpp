@@ -12,6 +12,7 @@ KodamaProcessor::KodamaProcessor()
     delayTimeParam = parameters.getRawParameterValue(PARAM_DELAY_TIME);
     feedbackParam = parameters.getRawParameterValue(PARAM_FEEDBACK);
     mixParam = parameters.getRawParameterValue(PARAM_MIX);
+    voicesParam = parameters.getRawParameterValue(PARAM_VOICES);
 
     dspHandle = kodama_dsp_create(44100.0f);
 }
@@ -49,6 +50,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout KodamaProcessor::createParam
         juce::NormalisableRange<float>(0.0f, 100.0f, 0.1f),
         50.0f,
         juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    params.push_back(std::make_unique<juce::AudioParameterInt>(
+        juce::ParameterID{PARAM_VOICES, 1},
+        "Voices",
+        1, 16, 1));
 
     return {params.begin(), params.end()};
 }
@@ -103,6 +109,7 @@ void KodamaProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiB
     kodama_dsp_set_delay_time(dspHandle, delayTimeParam->load());
     kodama_dsp_set_feedback(dspHandle, feedbackParam->load() / 100.0f);
     kodama_dsp_set_mix(dspHandle, mixParam->load() / 100.0f);
+    kodama_dsp_set_voices(dspHandle, static_cast<uint32_t>(voicesParam->load()));
 
     const auto numChannels = buffer.getNumChannels();
     const auto numSamples = static_cast<size_t>(buffer.getNumSamples());

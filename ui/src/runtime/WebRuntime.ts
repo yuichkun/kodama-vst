@@ -33,6 +33,11 @@ export class WebRuntime implements AudioRuntime {
       properties: { start: 0, end: 100, name: 'Mix', label: '%', interval: 0.1 },
       callbacks: new Set(),
     })
+    this.parameters.set('voices', {
+      value: 1,
+      properties: { start: 1, end: 16, name: 'Voices', label: '', interval: 1 },
+      callbacks: new Set(),
+    })
   }
 
   async initialize(): Promise<void> {

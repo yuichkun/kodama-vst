@@ -8,6 +8,7 @@ crate-type = ["staticlib", "cdylib"]
 
 [dependencies]
 wee_alloc = "0.4"
+libm = "0.2"
 
 [build-dependencies]
 cbindgen = "0.26"

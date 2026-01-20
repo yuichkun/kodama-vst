@@ -52,6 +52,7 @@ KodamaEditor::KodamaEditor(KodamaProcessor& p)
     delayTimeRelay = std::make_unique<juce::WebSliderRelay>(KodamaProcessor::PARAM_DELAY_TIME);
     feedbackRelay = std::make_unique<juce::WebSliderRelay>(KodamaProcessor::PARAM_FEEDBACK);
     mixRelay = std::make_unique<juce::WebSliderRelay>(KodamaProcessor::PARAM_MIX);
+    voicesRelay = std::make_unique<juce::WebSliderRelay>(KodamaProcessor::PARAM_VOICES);
 
     webView = std::make_unique<juce::WebBrowserComponent>(
         juce::WebBrowserComponent::Options{}
@@ -60,7 +61,8 @@ KodamaEditor::KodamaEditor(KodamaProcessor& p)
             .withKeepPageLoadedWhenBrowserIsHidden()
             .withOptionsFrom(*delayTimeRelay)
             .withOptionsFrom(*feedbackRelay)
-            .withOptionsFrom(*mixRelay));
+            .withOptionsFrom(*mixRelay)
+            .withOptionsFrom(*voicesRelay));
 
     delayTimeAttachment = std::make_unique<juce::WebSliderParameterAttachment>(
         *processorRef.parameters.getParameter(KodamaProcessor::PARAM_DELAY_TIME),
@@ -75,6 +77,11 @@ KodamaEditor::KodamaEditor(KodamaProcessor& p)
     mixAttachment = std::make_unique<juce::WebSliderParameterAttachment>(
         *processorRef.parameters.getParameter(KodamaProcessor::PARAM_MIX),
         *mixRelay,
+        nullptr);
+
+    voicesAttachment = std::make_unique<juce::WebSliderParameterAttachment>(
+        *processorRef.parameters.getParameter(KodamaProcessor::PARAM_VOICES),
+        *voicesRelay,
         nullptr);
 
     addAndMakeVisible(*webView);

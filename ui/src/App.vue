@@ -37,7 +37,8 @@ useWaveform((data) => {
         <WaveformDisplay ref="waveformRef" />
       </div>
 
-      <main class="flex justify-center gap-20 fixed bottom-0 left-0 w-full mb-10">
+      <main class="flex justify-center gap-12 fixed bottom-0 left-0 w-full mb-10">
+        <KnobControl parameter-id="voices" label="Voices" />
         <KnobControl parameter-id="delayTime" label="Time" unit="ms" />
         <KnobControl parameter-id="feedback" label="Feedback" unit="%" />
         <KnobControl parameter-id="mix" label="Mix" unit="%" />

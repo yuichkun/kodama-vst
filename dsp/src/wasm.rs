@@ -63,6 +63,15 @@ pub extern "C" fn wasm_set_mix(value: f32) {
     });
 }
 
+#[no_mangle]
+pub extern "C" fn wasm_set_voices(value: u32) {
+    with_processor(|p| {
+        if let Some(proc) = p {
+            proc.set_voices(value as usize);
+        }
+    });
+}
+
 /// # Safety
 /// All buffer pointers must be valid for `num_samples` elements
 #[no_mangle]

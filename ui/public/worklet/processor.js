@@ -62,6 +62,9 @@ class KodamaDspProcessor extends AudioWorkletProcessor {
       case 'mix':
         this.wasm.wasm_set_mix(value / 100.0);
         break;
+      case 'voices':
+        this.wasm.wasm_set_voices(value);
+        break;
     }
   }
 

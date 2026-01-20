@@ -24,10 +24,12 @@ private:
     std::unique_ptr<juce::WebSliderRelay> delayTimeRelay;
     std::unique_ptr<juce::WebSliderRelay> feedbackRelay;
     std::unique_ptr<juce::WebSliderRelay> mixRelay;
+    std::unique_ptr<juce::WebSliderRelay> voicesRelay;
 
     std::unique_ptr<juce::WebSliderParameterAttachment> delayTimeAttachment;
     std::unique_ptr<juce::WebSliderParameterAttachment> feedbackAttachment;
     std::unique_ptr<juce::WebSliderParameterAttachment> mixAttachment;
+    std::unique_ptr<juce::WebSliderParameterAttachment> voicesAttachment;
 
     std::unique_ptr<juce::WebBrowserComponent> webView;
 
