@@ -5,10 +5,10 @@ import { useParameter } from '@/composables/useRuntime'
 const props = defineProps<{
   parameterId: string
   label: string
-  color?: string
+  unit?: string
 }>()
 
-const { normalizedValue, displayValue, properties, setNormalizedValue } =
+const { normalizedValue, displayValue, setNormalizedValue } =
   useParameter(props.parameterId)
 
 const isDragging = ref(false)
@@ -21,7 +21,9 @@ const rotation = computed(() => {
   return minAngle + normalizedValue.value * (maxAngle - minAngle)
 })
 
-const accentColor = computed(() => props.color ?? '#8b5cf6')
+// SVG arc calculations for 270° sweep (r=40)
+const circumference = 2 * Math.PI * 40 // ≈ 251.33
+const arcLength = circumference * (270 / 360) // ≈ 188.5
 
 const onMouseDown = (e: MouseEvent) => {
   isDragging.value = true
@@ -46,54 +48,80 @@ const onMouseUp = () => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center gap-2 select-none">
-    <div class="relative w-20 h-20 cursor-pointer" @mousedown="onMouseDown">
-      <svg viewBox="0 0 100 100" class="w-full h-full">
+  <div class="knob-control w-[70px]">
+    <div class="knob" @mousedown="onMouseDown">
+      <svg viewBox="0 0 100 100">
+        <!-- Background track arc (270°) -->
         <circle
+          class="knob-track"
           cx="50"
           cy="50"
           r="40"
           fill="none"
-          stroke="#374151"
-          stroke-width="8"
+          stroke-width="3"
           stroke-linecap="round"
-          stroke-dasharray="226.2"
-          stroke-dashoffset="56.55"
-          transform="rotate(135 50 50)"
-        />
-        <circle
-          cx="50"
-          cy="50"
-          r="40"
-          fill="none"
-          :stroke="accentColor"
-          stroke-width="8"
-          stroke-linecap="round"
-          :stroke-dasharray="`${normalizedValue * 169.65} 226.2`"
+          :stroke-dasharray="`${arcLength} ${circumference}`"
           stroke-dashoffset="0"
           transform="rotate(135 50 50)"
-          class="transition-all duration-75"
         />
-        <circle cx="50" cy="50" r="28" fill="#1f2937" />
+        <!-- Value arc -->
+        <circle
+          class="knob-value-arc"
+          cx="50"
+          cy="50"
+          r="40"
+          fill="none"
+          stroke-width="3"
+          stroke-linecap="round"
+          :stroke-dasharray="`${normalizedValue * arcLength} ${circumference}`"
+          stroke-dashoffset="0"
+          transform="rotate(135 50 50)"
+        />
+        <!-- Center circle -->
+        <circle class="knob-center" cx="50" cy="50" r="28" />
+        <!-- Indicator line -->
         <line
+          class="knob-indicator"
           x1="50"
           y1="50"
           x2="50"
-          y2="28"
-          :stroke="accentColor"
+          y2="26"
           stroke-width="3"
           stroke-linecap="round"
           :transform="`rotate(${rotation} 50 50)`"
-          class="transition-transform duration-75"
         />
       </svg>
     </div>
-    <div class="text-center">
-      <div class="text-lg font-medium text-white">
-        {{ displayValue
-        }}<span class="text-xs text-gray-400 ml-1">{{ properties?.label ?? '' }}</span>
+    <div class="knob-label text-center text-gray-700">
+      <div class="knob-value text-xs">
+        {{ displayValue }}<span v-if="unit" class="knob-unit">{{ unit }}</span>
       </div>
-      <div class="text-sm text-gray-400">{{ label }}</div>
+      <div class="knob-name font-bold mt-1 text-xs">{{ label }}</div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.knob-control {
+  --knob-track-color: #3a3a4a;
+  --knob-value-color: #628494;
+  --knob-center-color: #2a2a3a;
+  --knob-indicator-color: #628494;
+}
+
+.knob-track {
+  stroke: var(--knob-track-color);
+}
+
+.knob-value-arc {
+  stroke: var(--knob-value-color);
+}
+
+.knob-center {
+  fill: var(--knob-center-color);
+}
+
+.knob-indicator {
+  stroke: var(--knob-indicator-color);
+}
+</style>

@@ -34,13 +34,12 @@ function render() {
   const h = canvas.height / dpr
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-  ctx.fillStyle = '#0a0a0a'
+  ctx.fillStyle = '#fff'
   ctx.fillRect(0, 0, w, h)
 
   ctx.beginPath()
-  ctx.strokeStyle = '#fff'
-  ctx.lineWidth = 1.5
-  ctx.lineJoin = 'round'
+  ctx.strokeStyle = '#000'
+  ctx.lineWidth = 0.5
 
   const len = buffer.length
   for (let i = 0; i < len; i++) {
@@ -76,5 +75,5 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <canvas ref="canvasRef" class="w-full h-full block" />
+  <canvas class="w-full h-full" ref="canvasRef" />
 </template>

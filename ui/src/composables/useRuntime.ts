@@ -82,10 +82,8 @@ export function useParameter(parameterId: string) {
   }
 
   const displayValue = computed(() => {
-    const props = properties.value
-    if (!props) return '0'
-    if (props.interval >= 1) return Math.round(scaledValue.value).toString()
-    return scaledValue.value.toFixed(1)
+    if (!properties.value) return '0'
+    return Math.round(scaledValue.value).toString()
   })
 
   return {

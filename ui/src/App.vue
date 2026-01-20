@@ -16,51 +16,31 @@ useWaveform((data) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 flex flex-col">
-    <header class="p-6 text-center">
-      <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-        Kodama
-      </h1>
-      <p class="text-gray-500 text-sm mt-1">Digital Delay</p>
+  <div class="app text-black">
+    <header class="mt-8 text-center">
+      <h1 class="mb-2 text-3xl font-bold text-[#202c32] font-['Limelight']">kodama</h1>
+      <p class="text-xs">Digital Delay</p>
     </header>
 
-    <div v-if="isWeb && !isInitialized && !initError" class="flex-1 flex items-center justify-center">
-      <p class="text-gray-400">Initializing audio engine...</p>
+    <div v-if="isWeb && !isInitialized && !initError">
+      <p>Initializing audio engine...</p>
     </div>
 
-    <div v-else-if="initError" class="flex-1 flex items-center justify-center">
-      <p class="text-red-400">Error: {{ initError }}</p>
+    <div v-else-if="initError">
+      <p>Error: {{ initError }}</p>
     </div>
 
     <template v-else>
-      <div v-if="isWeb" class="px-6 pb-4 flex justify-center">
-        <WebAudioControls />
+      <WebAudioControls v-if="isWeb" />
+
+      <div class="-z-10 fixed top-0 left-0 w-screen h-screen">
+        <WaveformDisplay ref="waveformRef" />
       </div>
 
-      <div class="px-6 pb-4">
-        <div class="h-32 rounded-lg overflow-hidden border border-white/10 bg-black">
-          <WaveformDisplay ref="waveformRef" />
-        </div>
-      </div>
-
-      <main class="flex-1 flex items-center justify-center pb-12">
-        <div class="flex gap-12">
-          <KnobControl
-            parameter-id="delayTime"
-            label="Time"
-            color="#a855f7"
-          />
-          <KnobControl
-            parameter-id="feedback"
-            label="Feedback"
-            color="#ec4899"
-          />
-          <KnobControl
-            parameter-id="mix"
-            label="Mix"
-            color="#6366f1"
-          />
-        </div>
+      <main class="flex justify-center gap-20 fixed bottom-0 left-0 w-full mb-10">
+        <KnobControl parameter-id="delayTime" label="Time" unit="ms" />
+        <KnobControl parameter-id="feedback" label="Feedback" unit="%" />
+        <KnobControl parameter-id="mix" label="Mix" unit="%" />
       </main>
     </template>
   </div>
