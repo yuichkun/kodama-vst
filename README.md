@@ -1,6 +1,6 @@
 # Kodama
 
-A digital delay VST plugin with a modern web-based UI built using JUCE 8 WebView and Vue 3.
+A digital delay plugin with shared Rust DSP core and dual runtime support (VST3/AU via JUCE, Web via WASM).
 
 ## Features
 
@@ -11,98 +11,126 @@ A digital delay VST plugin with a modern web-based UI built using JUCE 8 WebView
 - Modern UI built with Vue 3 + TypeScript + Tailwind CSS
 - Real-time parameter synchronization via JUCE WebSliderRelay
 
-## Requirements
-
-- macOS 10.15+
-- CMake 3.22+
-- Xcode Command Line Tools
-- Node.js 18+
-
-## Project Structure
+## Architecture
 
 ```
-kodama/
-├── libs/juce/          # JUCE 8 (git submodule)
-├── plugin/             # C++ plugin source
-│   ├── include/Kodama/
-│   │   ├── PluginProcessor.h
-│   │   └── PluginEditor.h
-│   └── src/
-│       ├── PluginProcessor.cpp
-│       └── PluginEditor.cpp
-└── ui/                 # Vue 3 frontend
-    ├── src/
-    │   ├── components/
-    │   ├── composables/
-    │   └── types/
-    └── dist/           # Built UI (generated)
+┌─────────────────────────────────────────────────────────────┐
+│                      Shared UI (Vue 3)                      │
+└─────────────────────────────────────────────────────────────┘
+                              │
+        ┌─────────────────────┴─────────────────────┐
+        │                                           │
+        ▼                                           ▼
+┌───────────────────┐                   ┌───────────────────┐
+│   Native Runtime  │                   │    Web Runtime    │
+│  (JUCE + C++ FFI) │                   │  (WASM + Worklet) │
+└───────────────────┘                   └───────────────────┘
+        │                                           │
+        └─────────────────────┬─────────────────────┘
+                              │
+                              ▼
+                   ┌───────────────────┐
+                   │   Rust DSP Core   │
+                   │   (kodama-dsp)    │
+                   └───────────────────┘
 ```
 
-## Build Instructions
+- **dsp/**: Rust DSP core (delay algorithm)
+  - Native: `staticlib` → C FFI → JUCE plugin
+  - Web: `cdylib` → WASM → AudioWorklet
+- **plugin/**: JUCE C++ wrapper (VST3/AU)
+- **ui/**: Vue 3 frontend (shared between both runtimes)
 
-### 1. Clone with submodules
+## Prerequisites
+
+| Platform | Requirements |
+|----------|-------------|
+| All | Node.js 18+, Rust (`rustup`), CMake 3.22+ |
+| macOS | macOS 10.15+, Xcode Command Line Tools |
+| Linux | build-essential, libasound2-dev, libwebkit2gtk-4.1-dev |
+| Windows | MSVC (Visual Studio 2022+) |
+
+```bash
+# Install Rust WASM target
+rustup target add wasm32-unknown-unknown
+```
+
+## Quick Start
+
+### Clone
 
 ```bash
 git clone --recursive https://github.com/your-username/kodama.git
 cd kodama
 ```
 
-Or if already cloned:
+### Web Development
 
 ```bash
-git submodule update --init --recursive
+npm run setup:web   # Install deps + build WASM
+npm run dev:web     # Start dev server (http://localhost:5173)
 ```
 
-### 2. Build the UI
+### JUCE Development
 
 ```bash
-cd ui
-npm install
-npm run build
-cd ..
+npm run setup:juce  # Install deps + build VST3
+npm run dev:juce    # Start UI dev server for plugin testing
 ```
 
-### 3. Build the plugin
+## npm Scripts
 
-```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
+| Script | Description |
+|--------|-------------|
+| `setup:web` | Install UI deps, build DSP to WASM |
+| `setup:juce` | Install UI deps, build full VST3 plugin |
+| `dev:web` | Start web dev server with HMR |
+| `dev:juce` | Start UI dev server for JUCE testing |
+| `build:dsp` | Build Rust DSP to WASM |
+| `release:web` | Production build for web deployment |
+| `release:vst` | Production build for VST3/AU |
+
+## Project Structure
+
+```
+kodama/
+├── dsp/                # Rust DSP core
+│   ├── src/
+│   │   ├── lib.rs      # Library entry
+│   │   ├── delay.rs    # Delay algorithm
+│   │   ├── ffi.rs      # C FFI bindings
+│   │   └── wasm.rs     # WASM bindings
+│   └── Cargo.toml
+├── libs/juce/          # JUCE 8 (git submodule)
+├── plugin/             # JUCE C++ wrapper
+│   ├── include/Kodama/
+│   └── src/
+└── ui/                 # Vue 3 frontend
+    ├── src/
+    │   ├── components/
+    │   ├── composables/
+    │   └── types/
+    └── public/
+        ├── wasm/       # Built WASM (generated)
+        └── worklet/    # AudioWorklet processor
 ```
 
-### 4. Find the built plugins
+## Build Artifacts
 
-After building, plugins will be located at:
-- **AU**: `build/plugin/Kodama_artefacts/Release/AU/Kodama.component`
-- **VST3**: `build/plugin/Kodama_artefacts/Release/VST3/Kodama.vst3`
-- **Standalone**: `build/plugin/Kodama_artefacts/Release/Standalone/Kodama.app`
-
-## Development
-
-### Frontend hot reload
-
-For UI development with hot reload:
-
-```bash
-cd ui
-npm run dev
-```
-
-The plugin will load UI from the `ui/dist/` directory. Rebuild UI when making changes.
-
-### Debug build
-
-```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Debug
-cmake --build build --config Debug
-```
+| Target | Location |
+|--------|----------|
+| VST3 | `build/plugin/Kodama_artefacts/Release/VST3/Kodama.vst3` |
+| AU | `build/plugin/Kodama_artefacts/Release/AU/Kodama.component` |
+| Standalone | `build/plugin/Kodama_artefacts/Release/Standalone/Kodama.app` |
+| Web | `ui/dist-web/` |
 
 ## Tech Stack
 
-- **Audio**: JUCE 8
-- **UI Framework**: Vue 3 + TypeScript
-- **Styling**: Tailwind CSS
-- **Build**: Vite + vite-plugin-singlefile
-- **C++ <-> JS**: JUCE WebBrowserComponent + WebSliderRelay
+- **DSP**: Rust
+- **Audio Plugin**: JUCE 8 (C++)
+- **UI**: Vue 3 + TypeScript + Tailwind CSS
+- **Build**: Vite, CMake, Cargo
+- **Web Audio**: WASM + AudioWorklet
 
 ## License
 
