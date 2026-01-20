@@ -1,5 +1,9 @@
 # Kodama
 
+<p align="center">
+  <img src="./screenshot.png" width="600" alt="Kodama Screenshot"/>
+</p>
+
 A digital delay plugin with shared Rust DSP core and dual runtime support (VST3/AU via JUCE, Web via WASM).
 
 ## Features
