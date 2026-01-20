@@ -4,9 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "dev:web": "VITE_RUNTIME=web vite",
+    "dev:juce": "vite build --watch",
+    "build:web": "VITE_RUNTIME=web vue-tsc -b && VITE_RUNTIME=web vite build",
+    "build": "vue-tsc -b && vite build"
   },
   "dependencies": {
     "vue": "^3.5.24"

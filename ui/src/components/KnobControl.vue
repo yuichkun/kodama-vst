@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useJuceParameter } from '@/composables/useJuceParameter'
+import { useParameter } from '@/composables/useRuntime'
 
 const props = defineProps<{
   parameterId: string
@@ -8,7 +8,8 @@ const props = defineProps<{
   color?: string
 }>()
 
-const { normalizedValue, displayValue, properties, setNormalizedValue } = useJuceParameter(props.parameterId)
+const { normalizedValue, displayValue, properties, setNormalizedValue } =
+  useParameter(props.parameterId)
 
 const isDragging = ref(false)
 const startY = ref(0)
@@ -33,7 +34,7 @@ const onMouseDown = (e: MouseEvent) => {
 const onMouseMove = (e: MouseEvent) => {
   if (!isDragging.value) return
   const delta = (startY.value - e.clientY) / 150
-  const newValue = startValue.value + delta
+  const newValue = Math.max(0, Math.min(1, startValue.value + delta))
   setNormalizedValue(newValue)
 }
 
@@ -46,10 +47,7 @@ const onMouseUp = () => {
 
 <template>
   <div class="flex flex-col items-center gap-2 select-none">
-    <div
-      class="relative w-20 h-20 cursor-pointer"
-      @mousedown="onMouseDown"
-    >
+    <div class="relative w-20 h-20 cursor-pointer" @mousedown="onMouseDown">
       <svg viewBox="0 0 100 100" class="w-full h-full">
         <circle
           cx="50"
@@ -92,7 +90,8 @@ const onMouseUp = () => {
     </div>
     <div class="text-center">
       <div class="text-lg font-medium text-white">
-        {{ displayValue }}<span class="text-xs text-gray-400 ml-1">{{ properties.label }}</span>
+        {{ displayValue
+        }}<span class="text-xs text-gray-400 ml-1">{{ properties?.label ?? '' }}</span>
       </div>
       <div class="text-sm text-gray-400">{{ label }}</div>
     </div>

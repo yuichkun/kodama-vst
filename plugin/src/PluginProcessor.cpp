@@ -12,9 +12,18 @@ KodamaProcessor::KodamaProcessor()
     delayTimeParam = parameters.getRawParameterValue(PARAM_DELAY_TIME);
     feedbackParam = parameters.getRawParameterValue(PARAM_FEEDBACK);
     mixParam = parameters.getRawParameterValue(PARAM_MIX);
+
+    dspHandle = kodama_dsp_create(44100.0f);
 }
 
-KodamaProcessor::~KodamaProcessor() = default;
+KodamaProcessor::~KodamaProcessor()
+{
+    if (dspHandle != nullptr)
+    {
+        kodama_dsp_destroy(dspHandle);
+        dspHandle = nullptr;
+    }
+}
 
 juce::AudioProcessorValueTreeState::ParameterLayout KodamaProcessor::createParameterLayout()
 {
@@ -57,20 +66,19 @@ void KodamaProcessor::changeProgramName(int, const juce::String&) {}
 
 void KodamaProcessor::prepareToPlay(double sampleRate, int)
 {
-    currentSampleRate = sampleRate;
-    writePosition = 0;
-
-    for (auto& buffer : delayBuffer)
+    if (dspHandle != nullptr)
     {
-        buffer.resize(MAX_DELAY_SAMPLES, 0.0f);
-        std::fill(buffer.begin(), buffer.end(), 0.0f);
+        kodama_dsp_set_sample_rate(dspHandle, static_cast<float>(sampleRate));
+        kodama_dsp_reset(dspHandle);
     }
 }
 
 void KodamaProcessor::releaseResources()
 {
-    for (auto& buffer : delayBuffer)
-        buffer.clear();
+    if (dspHandle != nullptr)
+    {
+        kodama_dsp_reset(dspHandle);
+    }
 }
 
 bool KodamaProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
@@ -89,42 +97,35 @@ void KodamaProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiB
 {
     juce::ScopedNoDenormals noDenormals;
 
-    const auto delayTimeMs = delayTimeParam->load();
-    const auto feedback = feedbackParam->load() / 100.0f;
-    const auto mix = mixParam->load() / 100.0f;
+    if (dspHandle == nullptr)
+        return;
 
-    const int delaySamples = static_cast<int>((delayTimeMs / 1000.0) * currentSampleRate);
-    const int clampedDelay = std::clamp(delaySamples, 1, MAX_DELAY_SAMPLES - 1);
+    kodama_dsp_set_delay_time(dspHandle, delayTimeParam->load());
+    kodama_dsp_set_feedback(dspHandle, feedbackParam->load() / 100.0f);
+    kodama_dsp_set_mix(dspHandle, mixParam->load() / 100.0f);
 
-    const auto numChannels = std::min(buffer.getNumChannels(), 2);
-    const auto numSamples = buffer.getNumSamples();
+    const auto numChannels = buffer.getNumChannels();
+    const auto numSamples = static_cast<size_t>(buffer.getNumSamples());
 
-    for (int channel = 0; channel < numChannels; ++channel)
+    if (numChannels >= 2)
     {
-        auto* channelData = buffer.getWritePointer(channel);
-        auto& delay = delayBuffer[static_cast<size_t>(channel)];
-
-        for (int sample = 0; sample < numSamples; ++sample)
-        {
-            const float drySignal = channelData[sample];
-
-            int readPosition = writePosition - clampedDelay;
-            if (readPosition < 0)
-                readPosition += MAX_DELAY_SAMPLES;
-
-            const float delayedSignal = delay[static_cast<size_t>(readPosition)];
-
-            delay[static_cast<size_t>(writePosition)] = drySignal + (delayedSignal * feedback);
-
-            channelData[sample] = (drySignal * (1.0f - mix)) + (delayedSignal * mix);
-
-            if (channel == numChannels - 1)
-            {
-                writePosition++;
-                if (writePosition >= MAX_DELAY_SAMPLES)
-                    writePosition = 0;
-            }
-        }
+        kodama_dsp_process(
+            dspHandle,
+            buffer.getReadPointer(0),
+            buffer.getReadPointer(1),
+            buffer.getWritePointer(0),
+            buffer.getWritePointer(1),
+            numSamples);
+    }
+    else if (numChannels == 1)
+    {
+        kodama_dsp_process(
+            dspHandle,
+            buffer.getReadPointer(0),
+            buffer.getReadPointer(0),
+            buffer.getWritePointer(0),
+            buffer.getWritePointer(0),
+            numSamples);
     }
 }
 

@@ -32,8 +32,11 @@ target_include_directories(Kodama
         include
 )
 
+add_dependencies(Kodama kodama_dsp_rust)
+
 target_link_libraries(Kodama
     PRIVATE
+        kodama_dsp
         juce::juce_audio_utils
         juce::juce_gui_extra
     PUBLIC
@@ -41,6 +44,10 @@ target_link_libraries(Kodama
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags
 )
+
+if(APPLE)
+    target_link_libraries(Kodama PRIVATE "-framework Security" "-framework CoreFoundation")
+endif()
 
 target_compile_definitions(Kodama
     PUBLIC

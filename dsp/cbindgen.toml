@@ -1,0 +1,19 @@
+language = "C"
+
+header = """
+/*
+ * Kodama DSP - Auto-generated C Header
+ * Do not edit manually.
+ */
+"""
+
+include_guard = "KODAMA_DSP_H"
+include_version = true
+cpp_compat = true
+
+[export]
+include = ["KodamaDspHandle"]
+
+[parse]
+parse_deps = false
+include = ["kodama-dsp"]

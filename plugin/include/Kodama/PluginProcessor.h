@@ -1,7 +1,7 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
-#include <array>
+#include "kodama_dsp.h"
 
 namespace kodama {
 
@@ -47,10 +47,7 @@ public:
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
-    static constexpr int MAX_DELAY_SAMPLES = 192000; // 2s @ 96kHz
-    std::array<std::vector<float>, 2> delayBuffer;
-    int writePosition = 0;
-    double currentSampleRate = 44100.0;
+    KodamaDspHandle* dspHandle = nullptr;
 
     std::atomic<float>* delayTimeParam = nullptr;
     std::atomic<float>* feedbackParam = nullptr;
