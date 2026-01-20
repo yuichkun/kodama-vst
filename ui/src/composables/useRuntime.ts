@@ -1,4 +1,4 @@
-import { ref, shallowRef, onMounted, onUnmounted, computed } from 'vue'
+import { ref, shallowRef, onMounted, onUnmounted, computed, watch } from 'vue'
 import type { AudioRuntime, ParameterState } from '@/runtime/types'
 
 const runtime = shallowRef<AudioRuntime | null>(null)
@@ -61,11 +61,11 @@ export function useParameter(parameterId: string) {
     })
   }
 
-  onMounted(() => {
-    if (isInitialized.value) {
+  watch(isInitialized, (newVal) => {
+    if (newVal) {
       updateFromRuntime()
     }
-  })
+  }, { immediate: true })
 
   onUnmounted(() => {
     unsubscribe?.()

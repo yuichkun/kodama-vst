@@ -1,4 +1,5 @@
 import type { AudioRuntime, ParameterState } from './types'
+import { getSliderState } from '@/juce/index.js'
 
 export class JuceRuntime implements AudioRuntime {
   readonly type = 'juce' as const
@@ -6,7 +7,7 @@ export class JuceRuntime implements AudioRuntime {
   getParameter(id: string): ParameterState | null {
     if (typeof window === 'undefined' || !window.__JUCE__) return null
 
-    const sliderState = window.__JUCE__.getSliderState(id)
+    const sliderState = getSliderState(id)
     if (!sliderState) return null
 
     return {
@@ -16,9 +17,11 @@ export class JuceRuntime implements AudioRuntime {
       setScaledValue: (value: number) => sliderState.setScaledValue(value),
       properties: sliderState.properties,
       onValueChanged: (callback: (value: number) => void) => {
-        sliderState.valueChangedCallback = callback
+        const listenerId = sliderState.valueChangedEvent.addListener(() => {
+          callback(sliderState.getNormalisedValue())
+        })
         return () => {
-          sliderState.valueChangedCallback = null
+          sliderState.valueChangedEvent.removeListener(listenerId)
         }
       },
     }
