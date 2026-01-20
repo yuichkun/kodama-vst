@@ -62,21 +62,24 @@ rustup target add wasm32-unknown-unknown
 ```bash
 git clone --recursive https://github.com/your-username/kodama.git
 cd kodama
+npm install         # Install all dependencies (including ui/)
 ```
+
+> **Note**: If you cloned without `--recursive`, run: `git submodule update --init --recursive`
 
 ### Web Development
 
 ```bash
-npm run setup:web   # Install deps + build WASM
+npm run build:dsp   # Build WASM
 npm run dev:web     # Start dev server (http://localhost:5173)
 ```
 
 ### JUCE Development
 
 ```bash
-npm run setup:juce  # Install deps + build Debug plugin
+cmake -B build -DCMAKE_BUILD_TYPE=Debug && cmake --build build --config Debug
 npm run dev:juce    # Start Vite dev server with HMR
-# Then open the plugin in DAW or standalone
+# Then open build/plugin/Kodama_artefacts/Debug/Standalone/Kodama[.app] in your DAW or run standalone
 ```
 
 ## npm Scripts

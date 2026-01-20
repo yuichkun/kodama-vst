@@ -9,8 +9,8 @@ out/
 *.xcodeproj/
 *.xcworkspace/
 
-# Node.js (ui/)
-ui/node_modules/
+# Node.js
+node_modules/
 ui/dist/
 ui/.vite/
 *.log

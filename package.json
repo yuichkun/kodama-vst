@@ -1,9 +1,10 @@
 {
   "name": "kodama",
   "private": true,
+  "workspaces": ["ui"],
   "scripts": {
-    "setup:web": "npm install --prefix ui && npm run build:dsp",
-    "setup:juce": "npm install --prefix ui && cmake -B build -DCMAKE_BUILD_TYPE=Debug && cmake --build build --config Debug",
+    "setup:web": "npm install && npm run build:dsp",
+    "setup:juce": "npm install && cmake -B build -DCMAKE_BUILD_TYPE=Debug && cmake --build build --config Debug",
     "dev:web": "npm run --prefix ui dev:web",
     "dev:juce": "npm run --prefix ui dev:juce",
     "build:dsp": "cd dsp && cargo build --target wasm32-unknown-unknown --release && mkdir -p ../ui/public/wasm && cp target/wasm32-unknown-unknown/release/kodama_dsp.wasm ../ui/public/wasm/",
