@@ -7,6 +7,7 @@ juce_add_plugin(Kodama
     PLUGIN_CODE Kdma
     FORMATS AU VST3 Standalone
     PRODUCT_NAME "Kodama"
+    COPY_PLUGIN_AFTER_BUILD TRUE
 )
 
 get_target_property(PRODUCT_NAME Kodama JUCE_PRODUCT_NAME)
@@ -17,6 +18,7 @@ target_compile_definitions(Kodama
         JUCE_PRODUCT_NAME="${PRODUCT_NAME}"
         JUCE_COMPANY_NAME="${COMPANY_NAME}"
         JUCE_PLUGIN_VERSION="${PROJECT_VERSION}"
+        KODAMA_UI_DIST_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../ui/dist"
 )
 
 target_sources(Kodama

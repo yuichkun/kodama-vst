@@ -89,42 +89,15 @@ void KodamaEditor::resized()
 
 std::optional<KodamaEditor::Resource> KodamaEditor::getResource(const juce::String& url)
 {
-    const auto resourceFileRoot = juce::File::getSpecialLocation(
-                                      juce::File::currentExecutableFile)
-                                      .getParentDirectory()
-                                      .getParentDirectory()
-                                      .getParentDirectory()
-                                      .getParentDirectory()
-                                      .getChildFile("ui")
-                                      .getChildFile("dist");
-
-    auto devRoot = juce::File::getSpecialLocation(juce::File::currentExecutableFile)
-                       .getParentDirectory()
-                       .getParentDirectory()
-                       .getParentDirectory()
-                       .getParentDirectory()
-                       .getParentDirectory()
-                       .getParentDirectory()
-                       .getChildFile("ui")
-                       .getChildFile("dist");
-
+    const juce::File resourceRoot{KODAMA_UI_DIST_PATH};
     const auto resourceToRetrieve = url == "/" ? "index.html" : url.fromFirstOccurrenceOf("/", false, false);
-
-    auto tryLoadResource = [&](const juce::File& root) -> std::optional<Resource> {
-        const auto resource = root.getChildFile(resourceToRetrieve).createInputStream();
-        if (resource)
-        {
-            const auto extension = resourceToRetrieve.fromLastOccurrenceOf(".", false, false);
-            return Resource{streamToVector(*resource), getMimeForExtension(extension)};
-        }
-        return std::nullopt;
-    };
-
-    if (auto result = tryLoadResource(resourceFileRoot))
-        return result;
-
-    if (auto result = tryLoadResource(devRoot))
-        return result;
+    const auto resourceFile = resourceRoot.getChildFile(resourceToRetrieve);
+    
+    if (auto stream = resourceFile.createInputStream())
+    {
+        const auto extension = resourceToRetrieve.fromLastOccurrenceOf(".", false, false);
+        return Resource{streamToVector(*stream), getMimeForExtension(extension)};
+    }
 
     return std::nullopt;
 }
