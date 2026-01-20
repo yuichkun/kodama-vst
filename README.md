@@ -74,8 +74,9 @@ npm run dev:web     # Start dev server (http://localhost:5173)
 ### JUCE Development
 
 ```bash
-npm run setup:juce  # Install deps + build VST3
-npm run dev:juce    # Start UI dev server for plugin testing
+npm run setup:juce  # Install deps + build Debug plugin
+npm run dev:juce    # Start Vite dev server with HMR
+# Then open the plugin in DAW or standalone
 ```
 
 ## npm Scripts
@@ -83,12 +84,12 @@ npm run dev:juce    # Start UI dev server for plugin testing
 | Script | Description |
 |--------|-------------|
 | `setup:web` | Install UI deps, build DSP to WASM |
-| `setup:juce` | Install UI deps, build full VST3 plugin |
+| `setup:juce` | Install UI deps, build Debug plugin |
 | `dev:web` | Start web dev server with HMR |
-| `dev:juce` | Start UI dev server for JUCE testing |
+| `dev:juce` | Start Vite dev server with HMR (Debug plugin connects to localhost:5173) |
 | `build:dsp` | Build Rust DSP to WASM |
 | `release:web` | Production build for web deployment |
-| `release:vst` | Production build for VST3/AU |
+| `release:vst` | Production build for VST3/AU (Release) |
 
 ## Project Structure
 

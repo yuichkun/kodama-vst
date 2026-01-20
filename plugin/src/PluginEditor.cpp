@@ -74,7 +74,11 @@ KodamaEditor::KodamaEditor(KodamaProcessor& p)
         nullptr);
 
     addAndMakeVisible(*webView);
+#if JUCE_DEBUG
+    webView->goToURL("http://localhost:5173");
+#else
     webView->goToURL(juce::WebBrowserComponent::getResourceProviderRoot());
+#endif
 
     setSize(500, 400);
     setResizable(true, true);

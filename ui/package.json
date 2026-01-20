@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev:web": "VITE_RUNTIME=web vite",
-    "dev:juce": "vite build --watch",
+    "dev:juce": "vite",
     "build:web": "VITE_RUNTIME=web vue-tsc -b && VITE_RUNTIME=web vite build",
     "build": "vue-tsc -b && vite build"
   },
