@@ -6,6 +6,7 @@ use libm::{powf, sqrtf};
 const MAX_DELAY_SAMPLES: usize = 192000;
 const MAX_VOICES: usize = 16;
 const DECAY_PER_TAP: f32 = 0.75;
+pub const WAVEFORM_BUFFER_SIZE: usize = 512;
 
 pub struct DelayProcessor {
     delay_buffer: Vec<f32>,
@@ -15,6 +16,8 @@ pub struct DelayProcessor {
     feedback: f32,
     mix: f32,
     voices: usize,
+    voice_waveforms: [[f32; WAVEFORM_BUFFER_SIZE]; MAX_VOICES],
+    waveform_write_index: usize,
 }
 
 impl DelayProcessor {
@@ -27,6 +30,8 @@ impl DelayProcessor {
             feedback: 0.3,
             mix: 0.5,
             voices: 1,
+            voice_waveforms: [[0.0; WAVEFORM_BUFFER_SIZE]; MAX_VOICES],
+            waveform_write_index: 0,
         }
     }
 
@@ -119,12 +124,19 @@ impl DelayProcessor {
 
                 let tap_output = self.delay_buffer[read_pos];
                 let gain = self.calculate_tap_gain(tap);
+                let voice_sample = tap_output * gain;
 
-                wet += tap_output * gain;
+                self.voice_waveforms[tap][self.waveform_write_index] = voice_sample;
+
+                wet += voice_sample;
 
                 if tap == self.voices - 1 {
                     last_tap_output = tap_output;
                 }
+            }
+
+            for tap in self.voices..MAX_VOICES {
+                self.voice_waveforms[tap][self.waveform_write_index] = 0.0;
             }
 
             self.delay_buffer[self.write_position] = input_mono + last_tap_output * self.feedback;
@@ -133,12 +145,25 @@ impl DelayProcessor {
             right_out[i] = right_in[i] * (1.0 - self.mix) + wet * self.mix;
 
             self.write_position = (self.write_position + 1) % MAX_DELAY_SAMPLES;
+            self.waveform_write_index = (self.waveform_write_index + 1) % WAVEFORM_BUFFER_SIZE;
         }
     }
 
     pub fn reset(&mut self) {
         self.delay_buffer.fill(0.0);
         self.write_position = 0;
+        for voice in &mut self.voice_waveforms {
+            voice.fill(0.0);
+        }
+        self.waveform_write_index = 0;
+    }
+
+    pub fn get_voice_waveform(&self, voice_index: usize) -> &[f32; WAVEFORM_BUFFER_SIZE] {
+        &self.voice_waveforms[voice_index.min(MAX_VOICES - 1)]
+    }
+
+    pub fn get_waveform_write_index(&self) -> usize {
+        self.waveform_write_index
     }
 }
 

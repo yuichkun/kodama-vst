@@ -7,6 +7,7 @@
 namespace kodama {
 
 constexpr size_t WAVEFORM_BUFFER_SIZE = 512;
+constexpr size_t MAX_VOICES = 16;
 
 class KodamaProcessor final : public juce::AudioProcessor
 {
@@ -51,7 +52,9 @@ public:
     juce::SpinLock waveformLock;
     std::array<float, WAVEFORM_BUFFER_SIZE> inputWaveformBuffer{};
     std::array<float, WAVEFORM_BUFFER_SIZE> outputWaveformBuffer{};
+    std::array<std::array<float, WAVEFORM_BUFFER_SIZE>, MAX_VOICES> voiceWaveformBuffers{};
     size_t waveformWriteIndex = 0;
+    uint32_t currentVoiceCount = 1;
 
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();

@@ -56,10 +56,21 @@ export class JuceRuntime implements AudioRuntime {
       this.waveformUnsubscribe = window.__JUCE__.backend.addEventListener(
         'waveformData',
         (data) => {
-          const typedData = data as { input: number[]; output: number[]; length: number }
+          const typedData = data as {
+            input: number[]
+            output: number[]
+            voiceWaveforms?: number[][]
+            voiceCount?: number
+            length: number
+          }
+
+          const voiceWaveforms = typedData.voiceWaveforms?.map((arr) => new Float32Array(arr))
+
           const waveformData: WaveformData = {
             input: new Float32Array(typedData.input),
             output: new Float32Array(typedData.output),
+            voiceWaveforms,
+            voiceCount: typedData.voiceCount,
             length: typedData.length,
           }
           this.waveformCallbacks.forEach((cb) => cb(waveformData))

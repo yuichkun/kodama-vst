@@ -6,6 +6,7 @@ use core::ops::FnOnce;
 use core::option::Option::{self, None, Some};
 use core::slice::{from_raw_parts, from_raw_parts_mut};
 
+use crate::delay::WAVEFORM_BUFFER_SIZE;
 use crate::DelayProcessor;
 
 /// Global processor storage for WASM (single-threaded)
@@ -103,6 +104,44 @@ pub extern "C" fn wasm_reset() {
     with_processor(|p| {
         if let Some(proc) = p {
             proc.reset();
+        }
+    });
+}
+
+#[no_mangle]
+pub extern "C" fn wasm_get_voice_count() -> u32 {
+    with_processor(|p| {
+        if let Some(proc) = p {
+            proc.get_voices() as u32
+        } else {
+            0
+        }
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn wasm_get_waveform_size() -> u32 {
+    WAVEFORM_BUFFER_SIZE as u32
+}
+
+/// # Safety
+/// `out_ptr` must be valid for WAVEFORM_BUFFER_SIZE elements
+#[no_mangle]
+pub unsafe extern "C" fn wasm_get_voice_waveform(voice_index: u32, out_ptr: *mut f32) {
+    if out_ptr.is_null() {
+        return;
+    }
+
+    with_processor(|p| {
+        if let Some(proc) = p {
+            let waveform = proc.get_voice_waveform(voice_index as usize);
+            let write_idx = proc.get_waveform_write_index();
+            let out_slice = from_raw_parts_mut(out_ptr, WAVEFORM_BUFFER_SIZE);
+
+            for i in 0..WAVEFORM_BUFFER_SIZE {
+                let read_idx = (write_idx + i) % WAVEFORM_BUFFER_SIZE;
+                out_slice[i] = waveform[read_idx];
+            }
         }
     });
 }

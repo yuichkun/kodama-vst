@@ -111,22 +111,30 @@ void KodamaEditor::timerCallback()
 {
     juce::Array<juce::var> inputArray;
     juce::Array<juce::var> outputArray;
+    juce::Array<juce::var> voiceWaveformsArray;
+    uint32_t voiceCount = 1;
 
     {
         juce::SpinLock::ScopedLockType lock(processorRef.waveformLock);
-        const size_t writeIdx = processorRef.waveformWriteIndex;
 
-        for (size_t i = 0; i < WAVEFORM_BUFFER_SIZE; ++i)
+        voiceCount = processorRef.currentVoiceCount;
+
+        for (uint32_t v = 0; v < voiceCount && v < MAX_VOICES; ++v)
         {
-            const size_t readIdx = (writeIdx + i) % WAVEFORM_BUFFER_SIZE;
-            inputArray.add(processorRef.inputWaveformBuffer[readIdx]);
-            outputArray.add(processorRef.outputWaveformBuffer[readIdx]);
+            juce::Array<juce::var> voiceArray;
+            for (size_t i = 0; i < WAVEFORM_BUFFER_SIZE; ++i)
+            {
+                voiceArray.add(processorRef.voiceWaveformBuffers[v][i]);
+            }
+            voiceWaveformsArray.add(voiceArray);
         }
     }
 
     auto waveformData = std::make_unique<juce::DynamicObject>();
     waveformData->setProperty("input", inputArray);
     waveformData->setProperty("output", outputArray);
+    waveformData->setProperty("voiceWaveforms", voiceWaveformsArray);
+    waveformData->setProperty("voiceCount", static_cast<int>(voiceCount));
     waveformData->setProperty("length", static_cast<int>(WAVEFORM_BUFFER_SIZE));
 
     webView->emitEventIfBrowserIsVisible("waveformData", juce::var(waveformData.release()));

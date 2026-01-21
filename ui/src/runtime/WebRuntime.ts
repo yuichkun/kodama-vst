@@ -158,10 +158,18 @@ export class WebRuntime implements AudioRuntime {
     return () => this.waveformCallbacks.delete(callback)
   }
 
-  private handleWaveformData(data: { input: Float32Array; output: Float32Array; length: number }): void {
+  private handleWaveformData(data: {
+    input: Float32Array
+    output: Float32Array
+    voiceWaveforms?: Float32Array[]
+    voiceCount?: number
+    length: number
+  }): void {
     const waveformData: WaveformData = {
       input: data.input,
       output: data.output,
+      voiceWaveforms: data.voiceWaveforms,
+      voiceCount: data.voiceCount,
       length: data.length,
     }
     this.waveformCallbacks.forEach((cb) => cb(waveformData))

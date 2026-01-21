@@ -26,6 +26,9 @@ void kodama_dsp_process(
     size_t num_samples
 );
 void kodama_dsp_reset(KodamaDspHandle* handle);
+uint32_t kodama_dsp_get_voice_count(KodamaDspHandle* handle);
+size_t kodama_dsp_get_waveform_size(void);
+void kodama_dsp_get_voice_waveform(KodamaDspHandle* handle, uint32_t voice_index, float* out_ptr);
 
 #ifdef __cplusplus
 }

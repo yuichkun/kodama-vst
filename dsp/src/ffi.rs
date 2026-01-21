@@ -1,3 +1,4 @@
+use crate::delay::WAVEFORM_BUFFER_SIZE;
 use crate::DelayProcessor;
 
 #[repr(C)]
@@ -104,5 +105,45 @@ pub unsafe extern "C" fn kodama_dsp_process(
 pub unsafe extern "C" fn kodama_dsp_reset(handle: *mut KodamaDspHandle) {
     if let Some(h) = handle.as_mut() {
         h.processor.reset();
+    }
+}
+
+/// # Safety
+/// `handle` must be a valid pointer returned by `kodama_dsp_create`
+#[no_mangle]
+pub unsafe extern "C" fn kodama_dsp_get_voice_count(handle: *mut KodamaDspHandle) -> u32 {
+    if let Some(h) = handle.as_ref() {
+        h.processor.get_voices() as u32
+    } else {
+        0
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn kodama_dsp_get_waveform_size() -> usize {
+    WAVEFORM_BUFFER_SIZE
+}
+
+/// # Safety
+/// - `handle` must be a valid pointer returned by `kodama_dsp_create`
+/// - `out_ptr` must be valid for WAVEFORM_BUFFER_SIZE elements
+#[no_mangle]
+pub unsafe extern "C" fn kodama_dsp_get_voice_waveform(
+    handle: *mut KodamaDspHandle,
+    voice_index: u32,
+    out_ptr: *mut f32,
+) {
+    if handle.is_null() || out_ptr.is_null() {
+        return;
+    }
+
+    let h = &*handle;
+    let waveform = h.processor.get_voice_waveform(voice_index as usize);
+    let write_idx = h.processor.get_waveform_write_index();
+    let out_slice = std::slice::from_raw_parts_mut(out_ptr, WAVEFORM_BUFFER_SIZE);
+
+    for i in 0..WAVEFORM_BUFFER_SIZE {
+        let read_idx = (write_idx + i) % WAVEFORM_BUFFER_SIZE;
+        out_slice[i] = waveform[read_idx];
     }
 }

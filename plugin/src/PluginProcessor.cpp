@@ -143,12 +143,11 @@ void KodamaProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiB
     const juce::SpinLock::ScopedTryLockType lock(waveformLock);
     if (lock.isLocked())
     {
-        const float* outputPtr = buffer.getReadPointer(0);
-        for (size_t i = 0; i < copySize; ++i)
+        currentVoiceCount = kodama_dsp_get_voice_count(dspHandle);
+
+        for (uint32_t v = 0; v < currentVoiceCount && v < MAX_VOICES; ++v)
         {
-            inputWaveformBuffer[waveformWriteIndex] = inputCopy[i];
-            outputWaveformBuffer[waveformWriteIndex] = outputPtr[i];
-            waveformWriteIndex = (waveformWriteIndex + 1) % WAVEFORM_BUFFER_SIZE;
+            kodama_dsp_get_voice_waveform(dspHandle, v, voiceWaveformBuffers[v].data());
         }
     }
 }

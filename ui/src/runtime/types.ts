@@ -21,6 +21,8 @@ export interface ParameterState {
 export interface WaveformData {
   input: Float32Array
   output: Float32Array
+  voiceWaveforms?: Float32Array[]
+  voiceCount?: number
   length: number
 }
 

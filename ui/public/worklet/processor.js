@@ -1,5 +1,6 @@
 const WAVEFORM_BUFFER_SIZE = 512;
 const WAVEFORM_SEND_INTERVAL = 4;
+const MAX_VOICES = 16;
 
 class KodamaDspProcessor extends AudioWorkletProcessor {
   constructor() {
@@ -10,6 +11,7 @@ class KodamaDspProcessor extends AudioWorkletProcessor {
     this.rightInPtr = null;
     this.leftOutPtr = null;
     this.rightOutPtr = null;
+    this.voiceWaveformPtr = null;
 
     this.inputRingBuffer = new Float32Array(WAVEFORM_BUFFER_SIZE);
     this.outputRingBuffer = new Float32Array(WAVEFORM_BUFFER_SIZE);
@@ -42,6 +44,7 @@ class KodamaDspProcessor extends AudioWorkletProcessor {
       this.rightInPtr = this.wasm.wasm_alloc(BLOCK_SIZE);
       this.leftOutPtr = this.wasm.wasm_alloc(BLOCK_SIZE);
       this.rightOutPtr = this.wasm.wasm_alloc(BLOCK_SIZE);
+      this.voiceWaveformPtr = this.wasm.wasm_alloc(WAVEFORM_BUFFER_SIZE);
 
       this.ready = true;
       this.port.postMessage({ type: 'wasm-ready' });
@@ -124,9 +127,29 @@ class KodamaDspProcessor extends AudioWorkletProcessor {
   }
 
   sendWaveformData() {
+    const voiceCount = this.wasm.wasm_get_voice_count();
+    const memory = this.wasm.memory;
+
+    const voiceWaveforms = [];
+    for (let v = 0; v < voiceCount; v++) {
+      this.wasm.wasm_get_voice_waveform(v, this.voiceWaveformPtr);
+      const waveformView = new Float32Array(memory.buffer, this.voiceWaveformPtr, WAVEFORM_BUFFER_SIZE);
+      voiceWaveforms.push(new Float32Array(waveformView));
+    }
+
+    const transferList = [this.inputRingBuffer.buffer, this.outputRingBuffer.buffer];
+    voiceWaveforms.forEach(arr => transferList.push(arr.buffer));
+
     this.port.postMessage(
-      { type: 'waveform', input: this.inputRingBuffer, output: this.outputRingBuffer, length: WAVEFORM_BUFFER_SIZE },
-      [this.inputRingBuffer.buffer, this.outputRingBuffer.buffer]
+      {
+        type: 'waveform',
+        input: this.inputRingBuffer,
+        output: this.outputRingBuffer,
+        voiceWaveforms: voiceWaveforms,
+        voiceCount: voiceCount,
+        length: WAVEFORM_BUFFER_SIZE
+      },
+      transferList
     );
 
     this.inputRingBuffer = new Float32Array(WAVEFORM_BUFFER_SIZE);
