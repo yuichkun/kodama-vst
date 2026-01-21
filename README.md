@@ -8,10 +8,13 @@ A digital delay plugin with shared Rust DSP core and dual runtime support (VST3/
 
 ## Features
 
-- Simple digital delay effect with 3 parameters:
+- Digital delay effect with 4 parameters:
+  - **Voices**: 1-16 (multi-tap delay for layered "mountain echo" effect)
   - **Delay Time**: 0-2000ms
   - **Feedback**: 0-100%
   - **Mix**: 0-100% (Dry/Wet)
+- Real-time waveform visualization with per-voice color coding (HSL-based)
+- Adjustable waveform speed/zoom with efficient min-max downsampling
 - Modern UI built with Vue 3 + TypeScript + Tailwind CSS
 - Real-time parameter synchronization via JUCE WebSliderRelay
 
