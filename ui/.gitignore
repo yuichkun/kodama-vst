@@ -24,3 +24,4 @@ public/wasm
 *.njsproj
 *.sln
 *.sw?
+.vercel
