@@ -10,6 +10,9 @@
     "build:dsp": "cd dsp && cargo build --target wasm32-unknown-unknown --release && mkdir -p ../ui/public/wasm && cp target/wasm32-unknown-unknown/release/kodama_dsp.wasm ../ui/public/wasm/",
     "release:web": "npm run build:dsp && npm run --prefix ui build:web && mkdir -p ui/dist-web/wasm ui/dist-web/worklet && cp ui/public/wasm/kodama_dsp.wasm ui/dist-web/wasm/ && cp ui/public/worklet/processor.js ui/dist-web/worklet/",
     "release:vst": "npm run --prefix ui build && cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release",
-    "installer:macos": "npm run release:vst && ./scripts/build-installer-macos.sh"
+    "installer:macos": "npm run release:vst && ./scripts/build-installer-macos.sh",
+    "clean": "rm -rf build/ installer/",
+    "clean:plugins": "rm -rf ~/Library/Audio/Plug-Ins/VST3/Kodama.vst3 ~/Library/Audio/Plug-Ins/Components/Kodama.component ~/Library/Caches/AudioUnitCache",
+    "clean:all": "npm run clean && npm run clean:plugins"
   }
 }
