@@ -54,15 +54,22 @@ KodamaEditor::KodamaEditor(KodamaProcessor& p)
     mixRelay = std::make_unique<juce::WebSliderRelay>(KodamaProcessor::PARAM_MIX);
     voicesRelay = std::make_unique<juce::WebSliderRelay>(KodamaProcessor::PARAM_VOICES);
 
-    webView = std::make_unique<juce::WebBrowserComponent>(
-        juce::WebBrowserComponent::Options{}
-            .withNativeIntegrationEnabled()
-            .withResourceProvider([this](const auto& url) { return getResource(url); })
-            .withKeepPageLoadedWhenBrowserIsHidden()
-            .withOptionsFrom(*delayTimeRelay)
-            .withOptionsFrom(*feedbackRelay)
-            .withOptionsFrom(*mixRelay)
-            .withOptionsFrom(*voicesRelay));
+    auto options = juce::WebBrowserComponent::Options{}
+        .withNativeIntegrationEnabled()
+#if JUCE_WINDOWS
+        .withBackend(juce::WebBrowserComponent::Options::Backend::webview2)
+        .withWinWebView2Options(
+            juce::WebBrowserComponent::Options::WinWebView2{}
+                .withUserDataFolder(juce::File::getSpecialLocation(juce::File::tempDirectory)))
+#endif
+        .withResourceProvider([this](const auto& url) { return getResource(url); })
+        .withKeepPageLoadedWhenBrowserIsHidden()
+        .withOptionsFrom(*delayTimeRelay)
+        .withOptionsFrom(*feedbackRelay)
+        .withOptionsFrom(*mixRelay)
+        .withOptionsFrom(*voicesRelay);
+
+    webView = std::make_unique<juce::WebBrowserComponent>(options);
 
     delayTimeAttachment = std::make_unique<juce::WebSliderParameterAttachment>(
         *processorRef.parameters.getParameter(KodamaProcessor::PARAM_DELAY_TIME),

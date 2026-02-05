@@ -21,6 +21,7 @@ juce_add_plugin(Kodama
     FORMATS ${KODAMA_PLUGIN_FORMATS}
     PRODUCT_NAME "Kodama"
     COPY_PLUGIN_AFTER_BUILD TRUE
+    NEEDS_WEBVIEW2 TRUE
 )
 
 get_target_property(PRODUCT_NAME Kodama JUCE_PRODUCT_NAME)
@@ -68,4 +69,5 @@ target_compile_definitions(Kodama
         JUCE_WEB_BROWSER=1
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0
+        JUCE_USE_WIN_WEBVIEW2=1
 )
