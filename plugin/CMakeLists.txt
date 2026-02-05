@@ -5,6 +5,12 @@ juce_add_binary_data(KodamaUIBinaryData
         "${CMAKE_CURRENT_SOURCE_DIR}/../ui/dist/index.html"
 )
 
+if(APPLE)
+    set(KODAMA_PLUGIN_FORMATS AU VST3 Standalone)
+else()
+    set(KODAMA_PLUGIN_FORMATS VST3 Standalone)
+endif()
+
 juce_add_plugin(Kodama
     COMPANY_NAME "KodamaAudio"
     IS_SYNTH FALSE
@@ -12,7 +18,7 @@ juce_add_plugin(Kodama
     NEEDS_MIDI_OUTPUT FALSE
     PLUGIN_MANUFACTURER_CODE Koda
     PLUGIN_CODE Kdma
-    FORMATS AU VST3 Standalone
+    FORMATS ${KODAMA_PLUGIN_FORMATS}
     PRODUCT_NAME "Kodama"
     COPY_PLUGIN_AFTER_BUILD TRUE
 )

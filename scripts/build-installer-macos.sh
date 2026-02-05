@@ -8,7 +8,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 BUILD_DIR="$PROJECT_ROOT/build"
 INSTALLER_DIR="$PROJECT_ROOT/installer"
-VERSION="0.1.0"
+VERSION="${KODAMA_VERSION:-}"
+if [ -n "$VERSION" ]; then
+    VERSION="${VERSION#v}"
+fi
+if [ -z "$VERSION" ] && [ -n "${GITHUB_REF_NAME:-}" ]; then
+    VERSION="${GITHUB_REF_NAME#v}"
+fi
+if [ -z "$VERSION" ]; then
+    VERSION=$(grep -E "project\(Kodama VERSION" "$PROJECT_ROOT/CMakeLists.txt" | sed -E 's/.*VERSION ([0-9.]+).*/\1/')
+fi
+if [ -z "$VERSION" ]; then
+    VERSION="0.1.0"
+fi
 IDENTIFIER="com.kodamaaudio.kodama"
 
 # Plugin paths
