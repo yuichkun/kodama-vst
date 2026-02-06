@@ -46,5 +46,26 @@ set_target_properties(kodama_dsp PROPERTIES
 )
 add_dependencies(kodama_dsp kodama_dsp_rust)
 
+# On Windows, auto-download WebView2 NuGet package for JUCE WebBrowserComponent
+if(WIN32 AND NOT JUCE_WEBVIEW2_PACKAGE_LOCATION)
+    find_program(NUGET_EXE NAMES nuget)
+    if(NOT NUGET_EXE)
+        message(STATUS "nuget.exe not found, downloading...")
+        file(DOWNLOAD
+            "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
+            "${CMAKE_BINARY_DIR}/nuget.exe"
+            SHOW_PROGRESS
+        )
+        set(NUGET_EXE "${CMAKE_BINARY_DIR}/nuget.exe")
+    endif()
+
+    execute_process(
+        COMMAND ${NUGET_EXE} install "Microsoft.Web.WebView2"
+            -Version 1.0.3485.44
+            -OutputDirectory "${CMAKE_BINARY_DIR}/packages"
+    )
+    set(JUCE_WEBVIEW2_PACKAGE_LOCATION "${CMAKE_BINARY_DIR}/packages" CACHE STRING "" FORCE)
+endif()
+
 add_subdirectory(libs/juce)
 add_subdirectory(plugin)

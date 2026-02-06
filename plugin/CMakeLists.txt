@@ -62,6 +62,8 @@ target_link_libraries(Kodama
 
 if(APPLE)
     target_link_libraries(Kodama PRIVATE "-framework Security" "-framework CoreFoundation")
+elseif(WIN32)
+    target_link_libraries(Kodama PRIVATE ntdll.lib ws2_32.lib userenv.lib bcrypt.lib advapi32.lib)
 endif()
 
 target_compile_definitions(Kodama
